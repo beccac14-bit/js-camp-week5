@@ -78,16 +78,14 @@ console.log(getProductById(products,'prod-10'));
  */
 function getProductsByCategory(products, category) {
   // 請實作此函式
-  return products.filter(function(obj){  // 回傳 .filter 函式結果
-    if(category === "全部"){   // 如果 category 是 "全部"，回傳整個 products 陣列
-      return products; 
-    }else if(category === obj.category){ // 如果 category 有對應到的其他分類，回傳對應分類的產品物件 obj
-      return obj;
-    } 
-  });
+  if(category ==="全部"){
+    return products;
+  }
+
+  return products.filter(obj => obj.category === category);
+
 }
 
-// 可以直接先判斷 if 全部，接著再接 .filter
 
 // 測試：
 console.log(getProductsByCategory(products, "衣服"))
@@ -105,8 +103,20 @@ console.log(getProductsByCategory(products, "??")) // .filter 沒有對應到的
  */
 function getDiscountRate(product) {
   // 請實作此函式
-  return  Math.round((product.price / product.origin_price) * 100) / 10 + "折"
+  // 寫法一：可以保留 79 折，運用 Math.floor 把小數點後的東西都拿掉
+  // 399 / 500 * 100 = 79.8 => Math.floor 拿掉小數點後 => 79 ＋ "折"
+  return Math.floor((product.price / product.origin_price) * 100)  + "折" 
+
+  // 寫法一之二：如果 /10 算出 7.9，可以透過 toString 轉字串後，用 replace 把.拿掉
+  const discountResult = 7.9 
+  return discountResult.toString().replace('.', '') + '折'; // 就會變成 字串 "79折"
+  
+  // 寫法二：四捨五入（只要大於 0.5）就進位，所以 79.8 折（0.8>0.5）會變成 8 折
+  // return  Math.round((product.price / product.origin_price) * 100) / 10 + "折" 
+
 }
+
+
 
 // 測試
 console.log(getDiscountRate(products[0])); // 399 / 500 = 0.798 => 79.8 =取整數=> 79 =除10=> 7.9 => "7.9折"
@@ -252,27 +262,27 @@ function addToCart(carts, product, quantity) {
   // 請實作此函式
 
 // 判斷產品是否已存在購物車中，且在既有購物車的索引位置為何
-const ExistedTarget = carts.findIndex(function (item){
+const existedTarget = carts.findIndex(function (item){
   return product.id === item.product.id 
 });
 // 測試
 // return ExistedTarget; 測試回傳的索引位置是否為 0
 
 // 不存在相同產品，則新增項目
-if(ExistedTarget == -1){ //如果查無相同的兩個產品 id，findindex 則會回傳 -1
+if(existedTarget === -1){ //如果查無相同的兩個產品 id，findindex 則會回傳 -1
   return [...carts, 
     // 淺拷貝原購物車陣列，並且新增一筆物件；
     // 雖然 ...carts 淺拷貝後，陣列裡[] 的物件{id, product, qty}仍是舊地址，但因為沒有對物件進行變更，所以不會動到原始資料
     {
       id : `cart-${Date.now()}`, // Date.noe() 是當下時間的唯一值
-      product: product,
-      quantity: quantity
+      product,
+      quantity
     }
   ]
 } else { //代表有兩個相同的產品 id
  return carts
   .map(function(obj, index){ // 先 .map 一份清單出來
-    if(index === ExistedTarget){ 
+    if(index === existedTarget){ 
       // 如果 newCarts（.map 出來的）的索引位置 和 既有 carts 購物車的索引位置 相同
       // 合併數量
       return {...obj, 
@@ -409,7 +419,13 @@ function filterOrdersByStatus(orders, isPaid) {
         return obj.paid === false;
       }
     });
+
+// 修改後寫法：因為 isPaid 會是填入 true/false，所以只要用一行去寫就可以囉！
+  return orders.filter(obj => obj.paid === isPaid);
 }
+
+
+
 
 // 測試
 console.log(filterOrdersByStatus(orders,false));
@@ -460,6 +476,8 @@ console.log(generateOrderReport(orders));
  *   'Credit Card': [order2]
  * }
  */
+
+// 寫法一：用 filter ＋ 設定兩個變數
 function groupOrdersByPayment(orders) {
   
 let filterATM = orders.filter(function(obj){ 
@@ -477,6 +495,25 @@ return {
 };
 
 }
+
+// 寫法二：運用神奇的 reduce 來累加
+
+// function groupOrdersByPayment(orders) {
+//   return orders.reduce( (resultGroup, order) => {
+//   const payment = order.user.payment;
+//     // 如果 {} 裡面沒有 payment 屬性，則初始化為空陣列
+//     // 例如 { "ATM": [], }
+//   if(!groups[payment]){
+//     groups[payment] = payment
+//   };
+//       // 接著就把該筆資料 push 進去 payment : [] 陣列裡
+//       // 例如 { "ATM": [order1], }
+//   groups[payment].push(order);
+
+//   return groups;
+
+// },{});
+// }
 
 // 測試
 // console.log(filterATM);
